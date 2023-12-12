@@ -163,9 +163,9 @@ public class LibraryHitServiceImpl implements LibraryHitService {
         Random random = new Random();
         return random.nextDouble() * precursorMz;
     }
-    private static double generateRandomIntensity(double precursorInt) {
+    private static double generateRandomIntensity(double basePeakInt) {
         Random random = new Random();
-        return random.nextDouble() * precursorInt;
+        return random.nextDouble() * basePeakInt;
     }
 
 
