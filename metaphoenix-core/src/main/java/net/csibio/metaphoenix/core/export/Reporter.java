@@ -172,19 +172,26 @@ public class Reporter {
             }
         });
 
+        int thresholdTPCount,thresholdFPCount;
+        thresholdTPCount = truePositives.stream().filter(hit -> hit.getScore() >= 0.8).toList().size();
+        thresholdFPCount = falsePositives.stream().filter(hit -> hit.getScore() >= 0.8).toList().size();
+        log.info("method:{}, thresholdTPCount:{}, thresholdFPCount:{}",methodDO.getSpectrumMatchMethod(),thresholdTPCount,thresholdFPCount);
+        if ((thresholdTPCount+thresholdFPCount) != 0)
+            log.info("Precision : {}", thresholdTPCount/(thresholdTPCount+thresholdFPCount));
+
         //AUC calculation
         double AUC = 0d, rightCount = 0d, falseCount = 0d;
         targetHits.sort(Comparator.comparing(LibraryHit::getScore));
         for (int i = 0; i < targetHits.size(); i++) {
             LibraryHit hit = targetHits.get(i);
             if (hit.isRight()) {
-                AUC += i;
                 rightCount++;
             } else {
+                AUC += i;
                 falseCount++;
             }
         }
-        AUC = AUC - rightCount * (rightCount + 1) / 2;
+        AUC = AUC - (rightCount * (rightCount + 1)) / 2;
         AUC = AUC / (rightCount * falseCount);
 
         //score range and step
@@ -228,6 +235,7 @@ public class Reporter {
             trueNegativeCount = tureNegatives.stream().filter(hit -> hit.getScore() < finalMinScore).toList().size();
             falseNegativeCount = falseNegatives.stream().filter(hit -> hit.getScore() < finalMinScore).toList().size();
             double trueFDR = 0d, BestSTDS_FDR = 0d, STDS_FDR = 0d, pValue = 0d, TPR = 0d, FPR = 0d, ROC = 0d;
+
             if (truePositiveCount + falsePositiveCount != 0) {
                 trueFDR = (double) falsePositiveCount / (truePositiveCount + falsePositiveCount);
             }
@@ -306,6 +314,7 @@ public class Reporter {
             row.add(AUC);
             dataSheet.add(row);
         }
+
         return dataSheet;
     }
 

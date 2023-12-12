@@ -53,8 +53,8 @@ public class TestController {
         //gnps
         gnpsParser.parseMsp("E:\\MS_data\\MetaPhoenix\\library\\GNPS-NIST14-MATCHES.msp");
         gnpsParser.parseMsp("E:\\MS_data\\MetaPhoenix\\library\\ALL_GNPS.msp");
-
-        //massbank
+//
+//        massbank
         massBankParser.parseMspEU("E:\\MS_data\\MetaPhoenix\\library\\MassBank_NIST.msp");
         massBankParser.parseMspMoNA("E:\\MS_data\\MetaPhoenix\\library\\MoNA-export-LC-MS-MS_Spectra.msp");
     }
@@ -87,7 +87,7 @@ public class TestController {
                 continue;
             }
             Row row = sheet.getRow(i);
-            if (row.getCell(1).getStringCellValue().contains("lvl 2A")) {
+            if (row.getCell(1).getStringCellValue().contains("lvl 2A") || row.getCell(1).getStringCellValue().contains("lvl 1")) {
                 SpectrumDO spectrumDO = new SpectrumDO();
                 spectrumDO.setLibraryId("ST001794");
                 for (Cell cell : row) {
@@ -123,25 +123,18 @@ public class TestController {
         //real score distribution sheet by the target-decoy strategy
         String queryLibraryId = "MassBank-MoNA";
         String targetLibraryId = "ALL_GNPS";
-//        String queryLibraryId = "MassBank-Europe";//MassBank-Europe GNPS-NIST14-MATCHES
+//        String queryLibraryId = "GNPS-NIST14-MATCHES";//MassBank-Europe GNPS-NIST14-MATCHES
 //        String targetLibraryId = "MassBank-MoNA";
 //          String queryLibraryId = "ST001794";
 //          String targetLibraryId = "ALL_GNPS";
         MethodDO methodDO = new MethodDO();
         methodDO.setPpmForMzTolerance(true);
         methodDO.setPpm(10);
-//        methodDO.set9SpectrumMatchMethod(SpectrumMatchMethod.Entropy);
+//        methodDO.setSpectrumMatchMethod(SpectrumMatchMethod.IonEntropyRankCosineSimilarity);
 //        reporter.scoreGraph(queryLibraryId, targetLibraryId, decoyLibraryId, methodDO, 100);
         List<SpectrumDO> querySpectrumDOS = spectrumService.getAllByLibraryId(queryLibraryId);
         reporter.compareSpectrumMatchMethods(querySpectrumDOS, targetLibraryId, methodDO, 100);
-//        List<SpectrumDO> targetSpectrumDOS = spectrumService.getAllByLibraryId(targetLibraryId);
-//        reporter.compareSpectrumMatchMethods(querySpectrumDOS, targetSpectrumDOS, methodDO, 100);
 
-
-        //ion entropy distribution
-//        reporter.ionEntropyDistributionGraph("GNPS-NIST14-MATCHES");
-//        reporter.ionEntropyDistributionGraph("MassBank-Europe");
-//        reporter.ionEntropyDistributionGraph("MassBank-MoNA");
     }
 
     @RequestMapping("compare")
@@ -153,9 +146,6 @@ public class TestController {
         String queryLibraryId = "MassBank-MoNA";
         String targetLibraryId = "ALL_GNPS";
 
-        //compare different spectrum match method
-//        reporter.compareSpectrumMatchMethods(queryLibraryId, targetLibraryId, methodDO, 100);
-
         reporter.ionEntropyDistributionGraph(targetLibraryId);
     }
 
@@ -163,12 +153,6 @@ public class TestController {
     public void all() {
         importLibrary();
         filter();
-//        sirius();
-//        decoy();
-//        identification();
-//        report();
-//        compare();
-//        ionEntropy();
     }
 
 }

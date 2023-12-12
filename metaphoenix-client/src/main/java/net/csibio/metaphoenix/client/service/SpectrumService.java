@@ -12,4 +12,3 @@ public interface SpectrumService extends BaseMultiService<SpectrumDO, SpectrumQu
     List<SpectrumDO> getByPrecursorMz(Double precursorMz, Double mzTolerance, String libraryId);
 
 }
-

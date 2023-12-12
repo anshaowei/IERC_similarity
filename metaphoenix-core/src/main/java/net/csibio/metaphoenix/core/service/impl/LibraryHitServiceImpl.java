@@ -1,6 +1,7 @@
 package net.csibio.metaphoenix.core.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import net.csibio.aird.bean.common.Spectrum;
 import net.csibio.metaphoenix.client.algorithm.entropy.Entropy;
 import net.csibio.metaphoenix.client.algorithm.similarity.Similarity;
 import net.csibio.metaphoenix.client.constants.Constants;
@@ -9,18 +10,18 @@ import net.csibio.metaphoenix.client.domain.bean.identification.LibraryHit;
 import net.csibio.metaphoenix.client.domain.bean.spectrum.IonPeak;
 import net.csibio.metaphoenix.client.domain.db.MethodDO;
 import net.csibio.metaphoenix.client.domain.db.SpectrumDO;
+import net.csibio.metaphoenix.client.domain.query.SpectrumQuery;
 import net.csibio.metaphoenix.client.service.LibraryHitService;
 import net.csibio.metaphoenix.client.service.LibraryService;
 import net.csibio.metaphoenix.client.service.SpectrumService;
 import net.csibio.metaphoenix.client.utils.ArrayUtil;
+import net.csibio.metaphoenix.client.utils.SpectrumUtil;
 import org.apache.commons.math3.stat.StatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -38,24 +39,28 @@ public class LibraryHitServiceImpl implements LibraryHitService {
         //  libraryId 为 targetLibraryId
         List<LibraryHit> libraryHits = new ArrayList<>();
         List<IonPeak> ionPeaksA = null;
-//        Double query_mzTolerance = 10 * Constants.PPM * querySpectrumDO.getPrecursorMz();
-        List<SpectrumDO> queSpectrumDOS = spectrumService.getByPrecursorMz(querySpectrumDO.getPrecursorMz(), mzTolerance, libraryId);
+//        SpectrumDO newQuerySpectrumDO = TotalNoise(querySpectrumDO, 0.5, mzTolerance);
+        SpectrumDO newQuerySpectrumDO = querySpectrumDO ;
+        List<SpectrumDO> queSpectrumDOS = spectrumService.getByPrecursorMz(newQuerySpectrumDO.getPrecursorMz(), mzTolerance, libraryId);
 
-        if ((spectrumMatchMethod.getName().equals("IonEntropyCosine") || (spectrumMatchMethod.getName().equals("IonEntropySpecEntropy")) || (spectrumMatchMethod.getName().equals("IonEntropyRankCosineSimilarity"))) && !isDecoy) {
-            ionPeaksA = getCaculateionEntropy(querySpectrumDO,  queSpectrumDOS, mzTolerance);
+//        if ((spectrumMatchMethod.getName().equals("IonEntropyCosine") || (spectrumMatchMethod.getName().equals("IonEntropySpecEntropy")) || (spectrumMatchMethod.getName().equals("IonEntropyRankCosineSimilarity"))) && !isDecoy) {
+//            ionPeaksA = getCaculateionEntropy(querySpectrumDO,  queSpectrumDOS, mzTolerance);
+//        }
+
+        if ((spectrumMatchMethod.getName().equals("IonEntropyRankCosineSimilarity")) && !isDecoy) {
+            ionPeaksA = getCaculateionEntropy(newQuerySpectrumDO,  queSpectrumDOS, mzTolerance);
         }
 
         for (SpectrumDO libSpectrumDO : queSpectrumDOS) {
-            LibraryHit libraryHit = init(querySpectrumDO, libSpectrumDO, isDecoy);
+            LibraryHit libraryHit = init(newQuerySpectrumDO, libSpectrumDO, isDecoy);
             if (ionPeaksA != null) {
-//                Double lib_mzTolerance = 10 * Constants.PPM * libSpectrumDO.getPrecursorMz();
                 List<SpectrumDO> libSpectrumDOS = spectrumService.getByPrecursorMz(libSpectrumDO.getPrecursorMz(), mzTolerance, libraryId);
                 List<IonPeak> ionPeaksB = getCaculateionEntropy(libSpectrumDO, libSpectrumDOS, mzTolerance);
 
-                libraryHit.setScore(getScore(querySpectrumDO, libSpectrumDO, mzTolerance, spectrumMatchMethod, ionPeaksA, ionPeaksB));
+                libraryHit.setScore(getScore(newQuerySpectrumDO, libSpectrumDO, mzTolerance, spectrumMatchMethod, ionPeaksA, ionPeaksB));
                 libraryHits.add(libraryHit);
             } else {
-                libraryHit.setScore(getScore(querySpectrumDO, libSpectrumDO, mzTolerance, spectrumMatchMethod));
+                libraryHit.setScore(getScore(newQuerySpectrumDO, libSpectrumDO, mzTolerance, spectrumMatchMethod));
             }
             libraryHits.add(libraryHit);
         }
@@ -82,9 +87,8 @@ public class LibraryHitServiceImpl implements LibraryHitService {
     private List<IonPeak> getCaculateionEntropy(SpectrumDO SpectrumDO, List<SpectrumDO> spectrumDOS, double mzTolerance) {
         List<IonPeak> Ionpeaksall = new ArrayList<>();
         List<IonPeak> ionWarehouse = new ArrayList<>();
-        List<IonPeak> precursorIonPeaks = Collections.synchronizedList(new ArrayList<>());
         for (SpectrumDO spectrum : spectrumDOS) {
-            double baseIntensity = StatUtils.max(spectrum.getInts());
+//            double baseIntensity = StatUtils.max(spectrum.getInts());
             int precursorIndex = ArrayUtil.findNearestIndex(spectrum.getMzs(), spectrum.getPrecursorMz());
             double precursorIntensity = spectrum.getInts()[precursorIndex];
             for (int i = 0; i < spectrum.getMzs().length; i++) {
@@ -97,7 +101,7 @@ public class LibraryHitServiceImpl implements LibraryHitService {
         for (int i = 0; i < SpectrumDO.getMzs().length; i++) {
             int precursorIndex = ArrayUtil.findNearestIndex(SpectrumDO.getMzs(), SpectrumDO.getPrecursorMz());
             double precursorIntensity = SpectrumDO.getInts()[precursorIndex];
-            double basePeakIntensity = StatUtils.max(SpectrumDO.getInts());
+//            double basePeakIntensity = StatUtils.max(SpectrumDO.getInts());
 
             IonPeak ionPeak = new IonPeak(SpectrumDO.getMzs()[i], SpectrumDO.getInts()[i] / precursorIntensity);
             Double ionMzTolerance = 10 * Constants.PPM * ionPeak.getMz();
@@ -119,6 +123,51 @@ public class LibraryHitServiceImpl implements LibraryHitService {
         }
         return Ionpeaksall;
     }
+
+    public SpectrumDO TotalNoise(SpectrumDO spectrumDO, double large, Double mzTolerance){
+        Spectrum spectrum = SpectrumUtil.clone(spectrumDO.getSpectrum());
+
+        int precursorIndex = ArrayUtil.findNearestIndex(spectrumDO.getMzs(), spectrumDO.getPrecursorMz());
+        double precursorMz = spectrumDO.getMzs()[precursorIndex];
+        double basePeak = StatUtils.max(spectrumDO.getInts());
+        HashMap<Double, Double> spectrumMap = new HashMap<>();
+        for (int i = 0; i < spectrum.getMzs().length; i++)
+            spectrumMap.put(spectrum.getMzs()[i], spectrum.getInts()[i]);
+
+
+        int noisePeakNum = (int) (large * spectrum.getMzs().length);
+        if (noisePeakNum < 1)
+            noisePeakNum = 1;
+        double[] noiseMzs = new double[noisePeakNum];
+        double[] noiseInts = new double[noisePeakNum];
+
+        for(int i = 0; i < noisePeakNum; i++){
+            noiseMzs[i] = generateRandomMz(precursorMz);
+            noiseInts[i] = generateRandomIntensity(basePeak) * 0.01;
+            spectrumMap.put(noiseMzs[i], noiseInts[i]);
+        }
+
+        List<Double> spectrumMzList = new ArrayList<>(spectrumMap.keySet().stream().toList());
+        spectrumMzList.sort(Double::compareTo);
+        double[] mzs = new double[spectrumMap.keySet().size()];
+        double[] ints = new double[spectrumMap.keySet().size()];
+        for (int i = 0; i < spectrumMzList.size(); i++) {
+            mzs[i] = spectrumMzList.get(i);
+            ints[i] = spectrumMap.get(mzs[i]);
+        }
+        spectrumDO.setMzs(mzs);
+        spectrumDO.setInts(ints);
+        return spectrumDO;
+    }
+    private static double generateRandomMz(double precursorMz) {
+        Random random = new Random();
+        return random.nextDouble() * precursorMz;
+    }
+    private static double generateRandomIntensity(double precursorInt) {
+        Random random = new Random();
+        return random.nextDouble() * precursorInt;
+    }
+
 
     private LibraryHit init(SpectrumDO querySpectrumDO, SpectrumDO libSpectrumDO, boolean isDecoy) {
         LibraryHit libraryHit = new LibraryHit();
@@ -178,12 +227,12 @@ public class LibraryHitServiceImpl implements LibraryHitService {
 //                    Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropySpecEntropy, mzTolerance);
             case IonEntropyRankCosineSimilarity ->
                     Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyRankCosineSimilarity, mzTolerance);
-//                    Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyManhattan, mzTolerance);
+//                    Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyRankCosineSimilarity, mzTolerance);
             case Unweighted_Entropy ->
                     Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.Unweighted_Entropy, mzTolerance);
 //                    Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.Unweighted_Entropy, mzTolerance);
-            case MetaPro ->
-                    Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.MetaPro, mzTolerance);
+//            case MetaPro ->
+//                    Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.MetaPro, mzTolerance);
 //                    Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.MetaPro, mzTolerance);
             case Weighted_Cosine ->
                     Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.Weighted_Cosine, mzTolerance);
@@ -236,8 +285,6 @@ public class LibraryHitServiceImpl implements LibraryHitService {
 //            return Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropySpecEntropy, mzTolerance, ionPeaksA, ionPeaksB);
         else
             return Similarity.getScore(querySpectrumDO.getSpectrum(), libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyRankCosineSimilarity, mzTolerance, ionPeaksA, ionPeaksB);
-//            return Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyManhattan, mzTolerance, ionPeaksA, ionPeaksB);
-
-
+//            return Similarity.getScore(removal_querySpectrumDO.getSpectrum(), removal_libSpectrumDO.getSpectrum(), SpectrumMatchMethod.IonEntropyRankCosineSimilarity, mzTolerance, ionPeaksA, ionPeaksB);
     }
 }

@@ -2,17 +2,17 @@ package net.csibio.metaphoenix.client.constants.enums;
 
 public enum SpectrumMatchMethod {
 
-    Cosine("Cosine"),
+    IonEntropyRankCosineSimilarity("IonEntropyRankCosineSimilarity"),
     Entropy("Entropy"),
+    RankCosine("RankCosine"),
+    Cosine("Cosine"),
     IonEntropyCosine("IonEntropyCosine"),
     IonEntropySpecEntropy("IonEntropySpecEntropy"),
     Unweighted_Entropy("Unweighted_Entropy"),
-    MetaPro("MetaPro"),
+//    MetaPro("MetaPro"),
     Weighted_Cosine("Weighted_Cosine"),
     Euclidean("Euclidean"),
-    Manhattan("Manhattan"),
-    RankCosine("RankCosine"),
-    IonEntropyRankCosineSimilarity("IonEntropyRankCosineSimilarity");
+    Manhattan("Manhattan");
 
     private final String name;
 
