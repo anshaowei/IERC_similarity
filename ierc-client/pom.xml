@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>net.csibio</groupId>
-        <artifactId>metaphoenix</artifactId>
+        <artifactId>ierc</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>metaphoenix-client</artifactId>
+    <artifactId>ierc-client</artifactId>
     <version>1.0.0</version>
 
     <dependencies>

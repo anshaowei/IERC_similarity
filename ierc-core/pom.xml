@@ -6,7 +6,7 @@
     <dependencies>
         <dependency>
             <groupId>net.csibio</groupId>
-            <artifactId>metaphoenix-client</artifactId>
+            <artifactId>ierc-client</artifactId>
             <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
@@ -20,10 +20,10 @@
 
     <parent>
         <groupId>net.csibio</groupId>
-        <artifactId>metaphoenix</artifactId>
+        <artifactId>ierc</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>metaphoenix-core</artifactId>
+    <artifactId>ierc-core</artifactId>
     <version>1.0.0</version>
 </project>

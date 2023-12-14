@@ -3,16 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.csibio</groupId>
-    <artifactId>metaphoenix</artifactId>
+    <artifactId>ierc</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0</version>
     <modules>
-        <module>metaphoenix-client</module>
-        <module>metaphoenix-core</module>
+        <module>ierc-client</module>
+        <module>ierc-core</module>
     </modules>
 
-    <name>MetaPhoenix</name>
-    <description>MetaPhoenix</description>
+    <name>IERC</name>
+    <description>ierc</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
